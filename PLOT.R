@@ -22,11 +22,11 @@ i=0
 
 
 #Read the (non-tidy) data in csv format
-df_raw_wide <- read.csv("prova.csv")
-df_raw_wide<-df_raw_wide[,-1]
-#Convert the wide data to a long format (and remove NA)
-df_raw_data <-  na.omit(gather(df_raw_wide, Condition, value))
-#Generate a dataframe that keeps a summary of the data
+# df_raw_wide <- read.csv("prova.csv")
+# df_raw_wide<-df_raw_wide[,-1]
+# #Convert the wide data to a long format (and remove NA)
+# df_raw_data <-  na.omit(gather(df_raw_wide, Condition, value))
+# #Generate a dataframe that keeps a summary of the data
 
 
 df_raw_data <- read.csv("prova2.csv")#<<-partendo da file in formato long
@@ -88,14 +88,16 @@ df_diff_summary$ci_mean_lo <- tapply(df_differences$diff_mean, df_differences$Co
 
 ######### PLOT with raw data + median and Confidence Interval ########
 meanplot <- ggplot(df_summary, aes(x = Condition, y = mean),width=0.02)+
-  geom_boxplot(data=df_raw_data,aes(x=Condition, y=value),width=0.2, alpha=0.3, color=c("blue", "red"))+
-  geom_quasirandom(data = df_raw_data, aes(x=Condition, y=value),
-                   varwidth = TRUE, cex=2, alpha=0.4)+theme_light(base_size = 12) + 
+  geom_boxplot(data=df_raw_data,aes(x=Condition, y=value), width=0.2, alpha=0.3, color=c("blue", "red")) +
+  # geom_quasirandom(data = df_raw_data, aes(x=Condition, y=value),
+  #                  varwidth = TRUE, cex=1, alpha=0.4)+
+  geom_jitter(data = df_raw_data, aes(x=Condition, y=value), width = 0.18, alpha=0.4)+
+  theme_light(base_size = 12) + 
   theme(panel.border = element_rect(size = 0.5, linetype = "solid", colour = "black", fill=NA)) + 
   theme(axis.text.y = element_text(size=8))+theme(legend.position="none")+
   scale_x_discrete(labels=c(expression(Asaia^{italic(pHM4)}),expression(Asaia^{italic(WSP)})))+
   theme(panel.border = element_rect(size = 0.5, linetype = "solid", colour = "black", fill=NA)) + 
-  labs(x="", y="Observed raw data of IL6")
+  labs(x="", y="IL6 pg/ml")
 
 effectplot <- ggplot(df_differences, aes(x = Condition, y = diff_mean))+
   geom_flat_violin(aes(x=Condition),position = position_nudge(x = 0, y = 0),
@@ -114,7 +116,7 @@ effectplot <- ggplot(df_differences, aes(x = Condition, y = diff_mean))+
 (meanplot)/(effectplot)
 
 
-#######################################
+  #######################################
 
 # #Sort dataframe Conditions according to median value
 # df_summary$Condition <- reorder (df_summary$Condition, df_summary$median)
