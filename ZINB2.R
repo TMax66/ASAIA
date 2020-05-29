@@ -90,3 +90,7 @@ g2<-zero %>%
 tab_model(mod,transform =NULL , string.ci = "95%CI", 
           file="zinb2.html", show.loglik=TRUE, 
           show.aic = TRUE, show.r2 = FALSE)
+
+
+
+
