@@ -20,25 +20,8 @@
 nleish<-nleish %>% 
 mutate("group"=gruppo) %>%
   select(group,n.leish) 
-
-# x<-nleish %>% 
-#   mutate(Zero=ifelse(n.leish==0, 0, 1))
-
-# %>% 
-#   ggplot(aes(x=n.leish))+geom_bar()
-#  
-#   
-  
-  
-
-
 nleish<-nleish %>% 
   mutate(group=factor(group, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina")))
-
-#nleish %>% 
-#ggplot(aes(n.leish))+geom_rug(aes(x = n.leish, y = 0), position = position_jitter(height = 0))+
-#facet_wrap(~gruppo)+labs(x="Number of Leishmania in Macrophages", y="N.of Macrophages")+geom_histogram(bins=100)
-
 
 mod <- zeroinfl(n.leish~ group,dist = "negbin",data = nleish)
 p<-plot_model(mod,grid = FALSE,vline.color = "blue", show.intercept = TRUE,
@@ -65,22 +48,56 @@ dt %>%
                       "Anfo"= "L+ Amphotericina B")) %>% 
   ggplot(aes(x=estimate, y=group, fill=group))+
   geom_halfeyeh(alpha=0.8, .width = c(0.95))+
-  scale_fill_manual(values=c("steelblue3","steelblue2", "steelblue1","gray" ))+
-  vline_0(color="red",linetype = 2)+labs(title="Count Model", x="Log-Mean", y="")+
+  scale_fill_manual(values=c("firebrick4","firebrick4", "firebrick4","gray" ))+
+  vline_0(color="red",linetype = 2)+labs(title="Coefficients plot", x="Count model estimated coefficients (log-mean)", y="")+
   theme_ggeffects()+ 
   theme(legend.position = 'none')+xlim(-2,1.5)+
   annotate(geom = "text", label="0.48(95%CI:0.26 0.69)",
            x=0.48,
            y=3.8,size=3.5)+
-    annotate(geom = "text", label="-0.10(95%CI:-0.29  0.79)",
-             x=-0.10,
-             y=2.8,size=3.5)+
-    annotate(geom = "text", label="-0.88(95%CI:-1.09 -0.66)",
-             x=-0.88,
-             y=1.8,size=3.5)+
-    annotate(geom = "text", label="-1.27(95%CI:-1.59 -0.96)",
-             x=-1.27,
-             y=0.8,size=3.5)
+  annotate(geom = "text", label="-0.10(95%CI:-0.29  0.79)",
+           x=-0.10,
+           y=2.8,size=3.5)+
+  annotate(geom = "text", label="-0.88(95%CI:-1.09 -0.66)",
+           x=-0.88,
+           y=1.8,size=3.5)+
+  annotate(geom = "text", label="-1.27(95%CI:-1.59 -0.96)",
+           x=-1.27,
+           y=0.8,size=3.5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# x<-nleish %>% 
+#   mutate(Zero=ifelse(n.leish==0, 0, 1))
+
+# %>% 
+#   ggplot(aes(x=n.leish))+geom_bar()
+#  
+#   
+
+#nleish %>% 
+#ggplot(aes(n.leish))+geom_rug(aes(x = n.leish, y = 0), position = position_jitter(height = 0))+
+#facet_wrap(~gruppo)+labs(x="Number of Leishmania in Macrophages", y="N.of Macrophages")+geom_histogram(bins=100)
+
+
+
 
 
 # +
