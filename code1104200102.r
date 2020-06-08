@@ -10,50 +10,53 @@ library(gridExtra)
 library(MKinfer)
 library(ggpubr)
 library(pscl)
+library(sjPlot)
+library(ggeffects)
+library(sjmisc)
 rm(list=ls())
 options(scipen = .999)
 dati <- read_excel("Dati AsaiaWSP-Leishmania_MODIFICATO.xlsx")
-#nleish<-read_excel("nparinmacro.xlsx", sheet = "Foglio3")
-#rateinf<-read_excel("nminf.xlsx")
-#cito<-read_excel("cito.xlsx")
+nleish<-read_excel("nparinmacro.xlsx", sheet = "Foglio3")
+rateinf<-read_excel("nminf.xlsx")
+cito<-read_excel("cito.xlsx")
 #Cytokine####
 
 ########TABELLA DESCRITTIVA###############
 
 
 
-# 
-# tab2<-dati %>% 
-#   pivot_longer(cols=4:12, names_to = "Parametro", values_to = "value") %>% 
-#   group_by(gruppo,time,Parametro) %>% 
-#   summarise(n=n(), mean=round(mean(value, na.rm=TRUE),2), sd=round(sd(value,na.rm=TRUE),2),
-#             qnt_25  = round(quantile(value, probs= 0.25,na.rm = TRUE),2),
-#             median  = round(quantile(value, probs= 0.50,na.rm = TRUE),2),
-#             qnt_75  = round(quantile(value, probs= 0.75,na.rm = TRUE),2)) %>% 
-#   data.frame()
-#   
-#   
-#   
-# write.table(tab2, file="descrittiva.csv")
-#   
-# 
-# 
-# dati %>% 
-#   pivot_longer(cols=4:12, names_to = "Parametro", values_to = "value") %>% 
-#   filter(Parametro=="iNOS") %>% 
-#   group_by(gruppo,time,Parametro) %>%
-#   filter(gruppo=="Leishmania") %>% 
-#   summarise(  mean= mean(value, na.rm=TRUE), sd=sd(value,na.rm=TRUE),
-#             qnt_25  =  quantile(value, probs= 0.25,na.rm = TRUE),
-#             median  =  quantile(value, probs= 0.50,na.rm = TRUE),
-#             qnt_75  =  quantile(value, probs= 0.75,na.rm = TRUE)) %>% 
-#   data.frame()
-# 
-# options(scipen = 999)
-# tab <- read_excel("tab.xlsx", sheet = "Foglio2", col_types = c("numeric", "numeric"))
-# 
-# x<-data.frame("var"=round((tab$difference/tab$`control_group (mean)`)*100,2))
-# write.table(x, file="var.csv")
+
+tab2<-dati %>% 
+  pivot_longer(cols=4:12, names_to = "Parametro", values_to = "value") %>% 
+  group_by(gruppo,time,Parametro) %>% 
+  summarise(n=n(), mean=round(mean(value, na.rm=TRUE),2), sd=round(sd(value,na.rm=TRUE),2),
+            qnt_25  = round(quantile(value, probs= 0.25,na.rm = TRUE),2),
+            median  = round(quantile(value, probs= 0.50,na.rm = TRUE),2),
+            qnt_75  = round(quantile(value, probs= 0.75,na.rm = TRUE),2)) %>% 
+  data.frame()
+  
+  
+  
+write.table(tab2, file="descrittiva.csv")
+  
+
+
+dati %>% 
+  pivot_longer(cols=4:12, names_to = "Parametro", values_to = "value") %>% 
+  filter(Parametro=="iNOS") %>% 
+  group_by(gruppo,time,Parametro) %>%
+  filter(gruppo=="Leishmania") %>% 
+  summarise(  mean= mean(value, na.rm=TRUE), sd=sd(value,na.rm=TRUE),
+            qnt_25  =  quantile(value, probs= 0.25,na.rm = TRUE),
+            median  =  quantile(value, probs= 0.50,na.rm = TRUE),
+            qnt_75  =  quantile(value, probs= 0.75,na.rm = TRUE)) %>% 
+  data.frame()
+
+options(scipen = 999)
+tab <- read_excel("tab.xlsx", sheet = "Foglio2", col_types = c("numeric", "numeric"))
+
+x<-data.frame("var"=round((tab$difference/tab$`control_group (mean)`)*100,2))
+write.table(x, file="var.csv")
 
 
 
@@ -135,25 +138,23 @@ boot.t.test(IL6 ~ gruppo, data=z4)
 il6A24h<-IL6 %>%
   filter(!is.na(IL6)) %>% 
   filter(time=="24h") %>% 
-  mutate(gruppo=factor(gruppo)) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  #mutate(iL6=log10(IL6)) %>% 
   dabest(gruppo, IL6, 
          idx = list(c("AsaiapHM4","AsaiaWSP" )), 
          paired = FALSE
   )
 
 
-#ggplot(il6A24h, aes(x=gruppo, y=IL6))
-
-
-p1<-plot(il6A24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-            rawplot.ylabel = "IL6 pg/ml ",
+p1<-plot(il6A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+            rawplot.ylabel = "Observed data of  IL6 pg/ml ",
             effsize.ylabel = "Unpaired mean difference",
             axes.title.fontsize = 12,
             rawplot.ylim = c(0,8000),
-            effsize.ylim = c(-1000,3500))
+            effsize.ylim = c(-1000,3500)
+         )
 
 
-#####new graph
 
 il6B24h<-IL6 %>%
   filter(!is.na(IL6)) %>% 
@@ -165,29 +166,30 @@ il6B24h<-IL6 %>%
          paired = FALSE
   )
 
-
-
-
-p2<-plot(il6B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-            rawplot.ylabel = " IL6 pg/ml ",
+p2<-plot(il6B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+            rawplot.ylabel = "Observed data of IL6 pg/ml ",
             effsize.ylabel = "Unpaired mean difference",
             axes.title.fontsize = 12,
          rawplot.ylim = c(0,8000),
          effsize.ylim = c(-2000,3500))
- 
+
+
+
+
+
 
 il6C<-IL6 %>%
   filter(!is.na(IL6)) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>%
-  mutate(iL6=log10(IL6)) %>% 
-  dabest(gruppo, iL6,
+  #mutate(iL6=log10(IL6)) %>% 
+  dabest(gruppo, IL6,
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE, 
   )
 
-p3<-plot(il6C,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "Log (IL6) pg/ml ",
+p3<-plot(il6C,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(IL6) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -317,8 +319,8 @@ il6A48h<-IL6 %>%
          paired = FALSE
   )
 
-p1<-plot(il6A48h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = " IL6 pg/ml ",
+p1<-plot(il6A48h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  IL6 pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,8000),
@@ -335,8 +337,8 @@ il6B48h<-IL6 %>%
          paired = FALSE
   )
 
-p2<-plot(il6B48h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = " IL6 pg/ml ",
+p2<-plot(il6B48h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of IL6 pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,8000),
@@ -346,14 +348,14 @@ il6C48h<-IL6 %>%
   filter(!is.na(IL6)) %>% 
   filter(time=="48h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>%
-  mutate(iL6=log10(IL6)) %>% 
-  dabest(gruppo, iL6, 
+  # mutate(iL6=log10(IL6)) %>% 
+  dabest(gruppo, IL6, 
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE
   )
 
-p3<-plot(il6C48h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "Log(IL6) pg/ml ",
+p3<-plot(il6C,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(IL6) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -402,7 +404,6 @@ bootstraped 95% confidence interval from 2.59 to 4.86 pg/ml; the bootstraped Wel
 #####TNF#######
 
 TNF<-dati[,c(2:3, 5)]
-
 
 
 ######bootstrap t-test TNF 24h####  
@@ -487,8 +488,8 @@ boot.t.test(TNF ~ gruppo, data=z4)
          paired = FALSE
   )
 
-p1<-plot(A24h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = "",
+p1<-plot(A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of TNF pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,3500)#,
@@ -505,8 +506,8 @@ B24h<-TNF %>%
          paired = FALSE
   )
 
-p2<-plot(B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "TNFα pg/ml ",
+p2<-plot(B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  TNF pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,4000),
@@ -519,14 +520,14 @@ tnf24h<-TNF %>%
   filter(!is.na(TNF)) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>%
-  mutate(tnf=log10(TNF)) %>% 
-  dabest(gruppo, tnf, 
+  #mutate(tnf=log10(TNF)) %>% 
+  dabest(gruppo, TNF, 
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE
   )
 
-p3<-plot(tnf24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "Log(TNFα) pg/ml ",
+p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(TNF) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -645,7 +646,7 @@ boot.t.test(TNF ~ gruppo, data=z4)
 
 #####grafici TNF 48h#####
 
-A48h<-TNF %>%
+A24h<-TNF %>%
   filter(!is.na(TNF)) %>% 
   filter(time=="48h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
@@ -655,15 +656,15 @@ A48h<-TNF %>%
          paired = FALSE
   )
 
-p1<-plot(A48h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "TNFα pg/ml ",
+p1<-plot(A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of TNF pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,450),
          effsize.ylim = c(-150,150)
 )
 
-B48h<-TNF %>%
+B24h<-TNF %>%
   filter(!is.na(TNF)) %>% 
   filter(time=="48h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
@@ -673,8 +674,8 @@ B48h<-TNF %>%
          paired = FALSE
   )
 
-p2<-plot(B48h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "TNFα pg/ml",
+p2<-plot(B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of TNF pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,450),
@@ -683,18 +684,18 @@ p2<-plot(B48h,rawplot.type = "sinaplot", float.contrast = FALSE,
 
 
 
-C48h<-TNF %>%
+tnf48h<-TNF %>%
   filter(!is.na(TNF)) %>% 
   filter(time=="48h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>%
-  mutate(tnf=log10(TNF)) %>% 
-  dabest(gruppo, tnf, 
+  #mutate(tnf=log10(TNF)) %>% 
+  dabest(gruppo, TNF, 
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE
   )
 
-p3<-plot(C48h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = "Log(TNFα) pg/ml",
+p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(TNF) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -823,12 +824,13 @@ A24h<-IL1b %>%
          paired = FALSE
   )
 
-p1<-plot(A24h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = paste("IL1β pg/ml"),
+p1<-plot(A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  IL1 beta pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
-         rawplot.ylim = c(0,450))
-         # effsize.ylim = c(-0.3,0.4))
+         rawplot.ylim = c(0,450)
+         # effsize.ylim = c(-0.3,0.4)
+)
 
 B24h<-IL1b %>%
   filter(!is.na(IL1beta)) %>% 
@@ -840,8 +842,8 @@ B24h<-IL1b %>%
          paired = FALSE
   )
 
-p2<-plot(B24h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = " IL1β pg/ml ",
+p2<-plot(B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of IL1 beta pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,450)
@@ -849,18 +851,19 @@ p2<-plot(B24h,rawplot.type = "sinaplot",  float.contrast = FALSE,
 )
 
 
-C24h<-IL1b %>%
+
+ilb24h<-IL1b %>%
   filter(!is.na(IL1beta)) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>%
-  mutate(il1b=log10(IL1beta)) %>% 
-  dabest(gruppo,il1b, 
+  #mutate(il1b=log10(IL1beta)) %>% 
+  dabest(gruppo, IL1beta, 
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE
   )
 
-p3<-plot(C24h,rawplot.type = "sinaplot",float.contrast = FALSE,
-         rawplot.ylabel = "Log(IL1β) pg/ml ",
+p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(IL1 beta) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -981,8 +984,8 @@ A24h<-IL12p40 %>%
          paired = FALSE
   )
 
-p1<-plot(A24h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = " IL12p40 pg/ml ",
+p1<-plot(A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of IL12p40 pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12#,
          # rawplot.ylim = c(0,4.5),
@@ -999,8 +1002,8 @@ B24h<-IL12p40 %>%
          paired = FALSE
   )
 
-p2<-plot(B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "IL12p40  pg/ml ",
+p2<-plot(B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  IL12p40 pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
           axes.title.fontsize = 12#,
          # rawplot.ylim = c(0,4.5),
@@ -1009,18 +1012,18 @@ p2<-plot(B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
 
 
 
-C24h<-IL12p40 %>%
+il12p40<-IL12p40 %>%
   filter(!is.na(IL12p40)) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>%
-  mutate(il12b=log10(IL12p40)) %>% 
-  dabest(gruppo, il12b, 
+ # mutate(il12b=log10(IL12p40)) %>% 
+  dabest(gruppo, IL12p40, 
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE
   )
 
-p3<-plot(C24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = " Log(IL12p40) pg/ml ",
+p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(IL12p40) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -1071,14 +1074,14 @@ bootstraped 95% confidence interval from 2.37 to 3.16 pg/ml; the bootstraped Wel
 #########################################################################################################################
 
 ####ROS#####
-
+set.seed(100)
 ROS<-dati[,c(2:3,8)]
-  #####bootstrap ros 24h#####
+#####bootstrap ros 24h#####
 x=ROS %>% 
   filter(gruppo %in% c("AsaiapHM4","AsaiaWSP")) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
-  #mutate(ros=log10(ROS)) %>% 
+  mutate(ROS=log10(ROS)) %>% 
   drop_na(ROS) 
 
 boot.t.test(ROS ~ gruppo, data=x)
@@ -1087,12 +1090,12 @@ xx=ROS %>%
   filter(gruppo %in% c("Asaia pHM4 L","AsaiaWSP L")) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
- # mutate(ros=log10(ROS)) %>% 
+  mutate(ROS=log10(ROS)) %>% 
   drop_na(ROS) 
 
 boot.t.test(ROS ~ gruppo, data=xx)
 
-z=ROS %>% 
+  z=ROS %>% 
   filter(time=="24h") %>% 
   filter(gruppo %in% c("AsaiapHM4","Med")) %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
@@ -1142,8 +1145,8 @@ A24h<-ROS %>%
          paired = FALSE
   )
 
-p1<-plot(A24h,rawplot.type = "sinaplot",  float.contrast = FALSE,
-         rawplot.ylabel = "ROS FU",
+p1<-plot(A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  ROS pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          # rawplot.ylim = c(0,4.5),
@@ -1160,8 +1163,8 @@ B24h<-ROS %>%
          paired = FALSE
   )
 
-p2<-plot(B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "ROS FU",
+p2<-plot(B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of ROS pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12#,
          # rawplot.ylim = c(0,4.5),
@@ -1170,18 +1173,18 @@ p2<-plot(B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
 
 
 
-rosC24h<-ROS %>%
+ros<-ROS %>%
   filter(!is.na(ROS)) %>% 
   filter(time=="24h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
-  mutate(ros=log10(ROS)) %>% 
-  dabest(gruppo, ros,  
+  #mutate(ros=log10(ROS)) %>% 
+  dabest(gruppo, ROS,  
          idx = list(c("Med","AsaiapHM4","AsaiaWSP",  "Leishmania", "LPS" )),
          paired = FALSE
   )
 
-p3<-plot(rosC24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "Log(ROS) FU",
+p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(ROS) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -1203,7 +1206,7 @@ p3<-plot(rosC24h,rawplot.type = "sinaplot", float.contrast = FALSE,
   theme(plot.tag = element_text(size = 13))
 
 
-####PLOT 2 ros 24h#####
+  ####PLOT 2 ros 24h#####
 (p3)+plot_annotation(caption=
                        
 "In this figure is reported the unpaired mean comparison of Log10(ROS) between different Treatment Group vs Med as control group at 24h: 
@@ -1297,8 +1300,8 @@ A24h<-Nitriti %>%
          paired = FALSE
   )
 
-p1<-plot(A24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "NO μM ",
+p1<-plot(A24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of NO μM ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
           rawplot.ylim = c(0,120)
@@ -1315,8 +1318,8 @@ B24h<-Nitriti %>%
          paired = FALSE
   )
 
-p2<-plot(B24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "NO μM ",
+p2<-plot(B24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  NO μM ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,140)#,
@@ -1335,8 +1338,8 @@ No24h<-Nitriti %>%
          paired = FALSE
   )
 
-p3<-plot(No24h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = " NO μM ",
+p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(NO) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -1353,8 +1356,8 @@ p3<-plot(No24h,rawplot.type = "sinaplot", float.contrast = FALSE,
 # In panel B is reported the unpaired mean comparison of Log10(ROS) Asaia WSP L vs AsaiaphM4 L as control group at 24h: The difference 
 # between the sample mean Log10(NO) in AsaiaWSP L (1.87 pg/ml) and AsaiapHM4 (1.88 pg/ml) was -0.01 pg/ml, with a
 # bootstraped 95% confidence interval from -0.15 to 0.12 pg/ml; the bootstraped Welch two-sample t-test P value was 0.598 ",
-theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0), 
-family = "Comic Sans MS"))
+                        theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0), 
+                                                              family = "Comic Sans MS"))
 ) &
   theme(plot.tag = element_text(size = 13))
 
@@ -1436,7 +1439,7 @@ boot.t.test(Nitriti ~ gruppo, data=z4)
 
 
 
-#####grafici NO 48h######
+  #####grafici NO 48h######
 A48h<-Nitriti %>%
   filter(!is.na(Nitriti)) %>% 
   filter(time=="48h") %>% 
@@ -1447,8 +1450,8 @@ A48h<-Nitriti %>%
          paired = FALSE
   )
 
-p1<-plot(A48h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "NO μM ",
+p1<-plot(A48h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  NO μM ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,160),
@@ -1465,8 +1468,8 @@ B48h<-Nitriti %>%
          paired = FALSE
   )
 
-p2<-plot(B48h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "NO μM",
+p2<-plot(B48h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of  NO μM",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12,
          rawplot.ylim = c(0,160),
@@ -1485,8 +1488,8 @@ No48h<-Nitriti %>%
          paired = FALSE
   )
 
-p3<-plot(No48h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "NO μM",
+p3<-plot(C48h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of Log10(NO) pg/ml ",
          effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 12)
 
@@ -1635,6 +1638,7 @@ p3<-plot(C24h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast 
 
 #################################################################################################################
 ################################################################################################################
+#####IL10#####
 IL10<-dati[,c(2:3,11)]
 #####bootstrap NO 24h#####
 x=IL10 %>% 
@@ -1811,42 +1815,42 @@ write.table(tabella, file="tab.csv")
 
 ###Arginasi<-dati[,c(2:3,12)]
 ##############################################################################################################
-  ##############################################################################################################
+##############################################################################################################
 
 #####Fagocitosi####
 
 fago <- read_excel("Dati fagocitosi2.xlsx")
-
 fago<-na.omit(fago)
-
 names(fago)[4]<-"CFUml"
 
-fago$time<-factor(fago$time, levels=c("1h", "2h", "24h"))
+fago$time<-ifelse(fago$time=="1h", "1h-2h",
+                  ifelse(fago$time=="2h", "1h-2h", "24h"))
 
-  fago<-fago %>% 
-  filter(time!="24h")
+fago$time<-factor(fago$time, levels=c("1h-2h", "24h"))
+
+
 #####bootstrap fago 1h#####
 x=fago %>% 
-  #filter(time=="1h") %>% 
+  filter(time=="1h-2h") %>% 
   filter(gruppo %in% c("Asaia pHM4","Asaia WSP")) %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
   #mutate(cfu=log10(CFUml)) %>% 
   drop_na(CFUml) 
 
-boot.t.test(CFUml~ gruppo, data=x)
+boot.t.test(CFUml ~ gruppo, data=x)
 
 xx=fago %>% 
   filter(gruppo %in% c("Asaia pHM4","Asaia pHM4 + LPS")) %>% 
-  #filter(time=="1h") %>% 
+  filter(time=="1h-2h") %>% 
   mutate(gruppo=as.factor(gruppo)) %>% 
- # mutate(cfu=log10(CFUml)) %>% 
+  #mutate(cfu=log10(CFUml)) %>% 
   drop_na(CFUml) 
 
 boot.t.test(CFUml ~ gruppo, data=xx)
 #####grafici fago  1h######
 A1h<-fago %>%
   filter(!is.na(CFUml)) %>% 
-  #filter(time=="1h") %>% 
+  filter(time=="1h-2h") %>%  
   mutate(gruppo=as.factor(gruppo)) %>% 
  # mutate(cfu=log10(CFUml)) %>% 
   dabest(gruppo, CFUml, 
@@ -1854,379 +1858,469 @@ A1h<-fago %>%
          paired = FALSE
   )
 
-p1<-plot(A1h,rawplot.type = "sinaplot", float.contrast = FALSE,
-         rawplot.ylabel = "CFU/ml",
-         effsize.ylabel = "Unpaired mean differences",
+p1<-plot(A1h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of phagocytosis activity CFU/ml",
+         effsize.ylabel = "Unpaired mean difference",
+         axes.title.fontsize = 10,
+         # rawplot.ylim = c(0,3.5),
+         effsize.ylim = c(-900000,1500000)
+         )
+
+####PLOT FAGO 1h#####
+(p1)+plot_annotation(caption=
+                       
+"In this figure is reported the unpaired mean comparison of phagocytosis activity (PA) in Log10(UFC/ml) 
+between different Treatment Group vs Asaia pHM4 as control group at 1h: 
+         
+1) The difference between the sample mean PA Log10(UFC/ml) in AsaiaWSP(5.98 UFC/ml) and AsaiapHM4 (5.80 UFC/ml) was 0.19 UFC/ml, with a
+bootstraped 95% confidence interval from -0.24 to 0.56 UFC/ml; the bootstraped Welch two-sample t-test P value was 0.228 
+
+2) The difference between the sample mean Log10(UFC/ml) in AsaiapHM4+LPS (5.97 UFC/ml) and AsaiapHM4 (5.80 UFC/ml) was 0.18 UFC/ml, with a
+bootstraped 95% confidence interval from -0.30 to 0.53 UFC/ml; the bootstraped Welch two-sample t-test P value was 0.466.",
+
+                     theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0),family = "Comic Sans MS"))) &
+  theme(plot.tag = element_text(size = 13))
+
+
+
+
+
+
+#####bootstrap fago 2h#####
+x=fago %>% 
+  filter(time=="2h") %>% 
+  filter(gruppo %in% c("Asaia pHM4","Asaia WSP")) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  mutate(cfu=log10(CFUml)) %>% 
+  drop_na(cfu) 
+
+boot.t.test(cfu ~ gruppo, data=x)
+
+xx=fago %>% 
+  filter(gruppo %in% c("Asaia pHM4","Asaia pHM4 + LPS")) %>% 
+  filter(time=="2h") %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  mutate(cfu=log10(CFUml)) %>% 
+  drop_na(cfu) 
+
+boot.t.test(cfu ~ gruppo, data=xx)
+
+
+
+
+
+#####grafici fago  2h######
+A2h<-fago %>%
+  filter(!is.na(CFUml)) %>% 
+  filter(time=="2h") %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  mutate(cfu=log10(CFUml)) %>% 
+  dabest(gruppo, cfu, 
+         idx = list(c("Asaia pHM4","Asaia WSP","Asaia pHM4 + LPS")), 
+         paired = FALSE
+  )
+
+p1<-plot(A2h,rawplot.type = "sinaplot", group.summaries = NULL, float.contrast = FALSE,
+         rawplot.ylabel = "Observed data of phagocytosis activity Log10(CFU/ml)",
+         effsize.ylabel = "Unpaired mean difference",
          axes.title.fontsize = 10#,
          # rawplot.ylim = c(0,3.5),
          # effsize.ylim = c(-0.35,0.2)
-         )
+)
+
+
+
+####PLOT FAGO 2h#####
+(p1)+plot_annotation(caption=
+                       
+"In this figure is reported the unpaired mean comparison of phagocytosis activity (PA) in Log10(UFC/ml) 
+between different Treatment Group vs Asaia pHM4 as control group at 2h: 
+         
+1) The difference between the sample mean PA Log10(UFC/ml) in AsaiaWSP(5.92 UFC/ml) and AsaiapHM4 (5.90 UFC/ml) was 0.03 UFC/ml, with a
+bootstraped 95% confidence interval from -0.45 to 0.46 UFC/ml; the bootstraped Welch two-sample t-test P value was 0.952 
+
+2) The difference between the sample mean PA Log10(UFC/ml) in AsaiapHM4+LPS (5.86 UFC/ml) and AsaiapHM4 (5.90 UFC/ml) was 0.04 UFC/ml, with a
+bootstraped 95% confidence interval from -0.53 to 0.32 UFC/ml; the bootstraped Welch two-sample t-test P value was 0.466.",
+                     
+                     theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0),family = "Comic Sans MS"))) &
+  theme(plot.tag = element_text(size = 13))
 
 
 
 
 
 
+#####bootstrap fago 24h#####
+x=fago %>% 
+  filter(time=="24h") %>% 
+  filter(gruppo %in% c("Asaia pHM4","Asaia WSP")) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  mutate(cfu=log10(CFUml)) %>% 
+  drop_na(cfu) 
 
+boot.t.test(cfu ~ gruppo, data=x)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ####PLOT FAGO 1h#####
-# (p1)+plot_annotation(caption=
-#                        
-# "In this figure is reported the unpaired mean comparison of phagocytosis activity (PA) in Log10(UFC/ml) 
-# between different Treatment Group vs Asaia pHM4 as control group at 1h: 
-#          
-# 1) The difference between the sample mean PA Log10(UFC/ml) in AsaiaWSP(5.98 UFC/ml) and AsaiapHM4 (5.80 UFC/ml) was 0.19 UFC/ml, with a
-# bootstraped 95% confidence interval from -0.24 to 0.56 UFC/ml; the bootstraped Welch two-sample t-test P value was 0.228 
-# 
-# 2) The difference between the sample mean Log10(UFC/ml) in AsaiapHM4+LPS (5.97 UFC/ml) and AsaiapHM4 (5.80 UFC/ml) was 0.18 UFC/ml, with a
-# bootstraped 95% confidence interval from -0.30 to 0.53 UFC/ml; the bootstraped Welch two-sample t-test P value was 0.466.",
-# 
-#                      theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0),family = "Comic Sans MS"))) &
-#   theme(plot.tag = element_text(size = 13))
-# 
-# 
-# 
-
-
-
-    
-# ##### N. leishmanie#####
-# 
-# 
-# 
-# 
-# nleish<-nleish %>%
-#   select(gruppo,n.leish) %>% 
-#   mutate(gruppo=as.factor(gruppo)) %>% 
-#   dabest(gruppo, n.leish, 
-#          idx = list(c("Leishmania", "AsaiapHM4","AsaiaWSP", "Anfotericina" )), 
-#          paired = FALSE
-#   )
-# 
-# px<-plot(nleish,rawplot.type = "sinaplot", group.summaries = NULL,
-#      rawplot.ylabel = "number of Leishmania/macrophage",
-#      effsize.ylabel = "Unpaired mean difference",
-#      axes.title.fontsize = 10#,
-#      # rawplot.ylim = c(0,3.5),
-#      #effsize.ylim = c(-0.35,0.2)
-# )
-# 
-# (px)+plot_annotation(caption=
-#                        
-# "In this figure is reported the unpaired mean comparison of number of Leishmania/macrophages between different Treatment Group vs Leishmania as control group at 24h: 
-#          
-# 1) The difference between the sample mean of parasites in AsaiapHM4 (1.12) and Med (1.44) was -0.32, with a
-# bootstraped 95% confidence interval from -0.52 to -0.13; the bootstraped Welch two-sample t-test P value was < 2.2e-16 
-# 
-# 2) The difference between the sample mean of parasites in AsaiaWSP (0.63) and Med (1.44) was -0.81  , with a
-# bootstraped 95% confidence interval from -0.97 to -0.64; the bootstraped Welch two-sample t-test P value was 0.002. 
-# 
-# 3) The difference between the sample mean of parasites in Leishmania (0.33) and Med (1.44) was -1.11, with a
-# bootstraped 95% confidence interval from -1.27 to -0.96; the bootstraped Welch two-sample t-test P value was < 2.2e-16. ",
-#                      theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0),family = "Comic Sans MS"))) &
-#   theme(plot.tag = element_text(size = 13))
-# 
-# 
-# x=nleish %>% 
-#   select(-replica) %>% 
-#   filter(gruppo %in% c("Leishmania","AsaiapHM4")) %>% 
-#   mutate(gruppo=as.factor(gruppo)) %>% 
-#   # mutate(iL6=log10(IL6)) %>% 
-#   drop_na(n.leish) 
-# 
-# boot.t.test(n.leish ~ gruppo, data=x)
-# 
-# y=nleish %>% 
-#   select(-replica) %>% 
-#   filter(gruppo %in% c("Leishmania","AsaiaWSP")) %>% 
-#   mutate(gruppo=as.factor(gruppo)) %>% 
-#   # mutate(iL6=log10(IL6)) %>% 
-#   drop_na(n.leish) 
-# 
-# boot.t.test(n.leish ~ gruppo, data=y)
-# 
-# z=nleish %>% 
-#   select(-replica) %>% 
-#   filter(gruppo %in% c("Leishmania","Anfotericina")) %>% 
-#   mutate(gruppo=as.factor(gruppo)) %>% 
-#   # mutate(iL6=log10(IL6)) %>% 
-#   drop_na(n.leish) 
-# 
-# boot.t.test(n.leish ~ gruppo, data=z)
-# 
-#       
-# 
-# 
-# 
-# data<-list(exp=nleish)
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ####STAFILOCOCCHI####
-# 
-dati <- read_excel("Dati Staphylococcus.xlsx")
-
-
-#bootstrap test stafilococchi####
-s1<-dati%>%
+xx=fago %>% 
+  filter(gruppo %in% c("Asaia pHM4","Asaia pHM4 + LPS")) %>% 
   filter(time=="1h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
-  filter(gruppo %in% c("Asaia pHM4","Medium"))  
- 
-boot.t.test(CFU ~ gruppo, data=s1)
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  mutate(cfu=log10(CFUml)) %>% 
+  drop_na(cfu) 
 
-s2<-dati%>%
-  filter(time=="1h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
-  filter(gruppo %in% c("Asaia WSP","Medium"))  
-
-boot.t.test(CFU ~ gruppo, data=s2)
+boot.t.test(cfu ~ gruppo, data=xx)
 
 
-s3<-dati%>%
-  filter(time=="1h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
-  filter(gruppo %in% c("LPS","Medium"))  
-
-boot.t.test(CFU ~ gruppo, data=s3)
-
-
-######
-
-s5<-dati%>%
-  filter(time=="2h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
-  filter(gruppo %in% c("Asaia pHM4","Medium"))  
-
-boot.t.test(CFU ~ gruppo, data=s5)
-
-s6<-dati%>%
-  filter(time=="2h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
-  filter(gruppo %in% c("Asaia WSP","Medium"))  
-
-boot.t.test(CFU ~ gruppo, data=s6)
-
-
-s7<-dati%>%
-  filter(time=="2h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
-  filter(gruppo %in% c("LPS","Medium"))  
-
-boot.t.test(CFU ~ gruppo, data=s7)
+##### N. leishmanie#####
 
 
 
 
+nleish<-nleish %>%
+  select(gruppo,n.leish) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  dabest(gruppo, n.leish, 
+         idx = list(c("Leishmania", "AsaiapHM4","AsaiaWSP", "Anfotericina" )), 
+         paired = FALSE
+  )
+
+px<-plot(nleish,rawplot.type = "sinaplot", group.summaries = NULL,
+     rawplot.ylabel = "number of Leishmania/macrophage",
+     effsize.ylabel = "Unpaired mean difference",
+     axes.title.fontsize = 10#,
+     # rawplot.ylim = c(0,3.5),
+     #effsize.ylim = c(-0.35,0.2)
+)
+
+(px)+plot_annotation(caption=
+                       
+"In this figure is reported the unpaired mean comparison of number of Leishmania/macrophages between different Treatment Group vs Leishmania as control group at 24h: 
+         
+1) The difference between the sample mean of parasites in AsaiapHM4 (1.12) and Med (1.44) was -0.32, with a
+bootstraped 95% confidence interval from -0.52 to -0.13; the bootstraped Welch two-sample t-test P value was < 2.2e-16 
+
+2) The difference between the sample mean of parasites in AsaiaWSP (0.63) and Med (1.44) was -0.81  , with a
+bootstraped 95% confidence interval from -0.97 to -0.64; the bootstraped Welch two-sample t-test P value was 0.002. 
+
+3) The difference between the sample mean of parasites in Leishmania (0.33) and Med (1.44) was -1.11, with a
+bootstraped 95% confidence interval from -1.27 to -0.96; the bootstraped Welch two-sample t-test P value was < 2.2e-16. ",
+                     theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0),family = "Comic Sans MS"))) &
+  theme(plot.tag = element_text(size = 13))
 
 
-
-
-
-
-staf1h<-dati%>%
-  filter(time=="1h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
+x=nleish %>% 
+  select(-replica) %>% 
+  filter(gruppo %in% c("Leishmania","AsaiapHM4")) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
   # mutate(iL6=log10(IL6)) %>% 
-  dabest(gruppo, CFU,
-         idx = list(c("Medium","Asaia pHM4","Asaia WSP","LPS" )),
+  drop_na(n.leish) 
+
+boot.t.test(n.leish ~ gruppo, data=x)
+
+y=nleish %>% 
+  select(-replica) %>% 
+  filter(gruppo %in% c("Leishmania","AsaiaWSP")) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  # mutate(iL6=log10(IL6)) %>% 
+  drop_na(n.leish) 
+
+boot.t.test(n.leish ~ gruppo, data=y)
+
+z=nleish %>% 
+  select(-replica) %>% 
+  filter(gruppo %in% c("Leishmania","Anfotericina")) %>% 
+  mutate(gruppo=as.factor(gruppo)) %>% 
+  # mutate(iL6=log10(IL6)) %>% 
+  drop_na(n.leish) 
+
+boot.t.test(n.leish ~ gruppo, data=z)
+
+      
+
+
+
+data<-list(exp=nleish)
+
+
+
+
+
+
+
+
+
+
+
+nleish %>% 
+  mutate(p=ifelse(n.leish==0,0,1)) %>% 
+  group_by(group) %>% 
+  summarise(prop=mean(p))
+
+
+
+
+
+
+###Zero-inflated neg binom regression#####
+nleish<-read_excel("nparinmacro.xlsx", sheet = "Foglio3")
+nleish<-nleish %>% 
+  select("group"=gruppo, n.leish)
+
+nleish<-nleish %>% 
+  mutate(group=factor(group, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina")))
+
+#nleish %>% 
+   #ggplot(aes(n.leish))+geom_rug(aes(x = n.leish, y = 0), position = position_jitter(height = 0))+
+   #facet_wrap(~gruppo)+labs(x="Number of Leishmania in Macrophages", y="N.of Macrophages")+geom_histogram(bins=100)
+
+
+mod <- zeroinfl(n.leish~ group,dist = "negbin",data = nleish)
+
+m0 <- update(mod, . ~ 1)
+# pchisq(2 * (logLik(mod) - logLik(m0)), df = 3, lower.tail=FALSE)
+
+p<-plot_model(mod,grid = FALSE,vline.color = "blue", show.intercept = TRUE,
+              show.values = FALSE, show.p = FALSE)
+
+#p[["conditional"]][["data"]]$term<-factor(p[["conditional"]][["data"]]$term, 
+                                          levels=c("Control Group","AsaiapHM4","AsaiaWSP","Amphotericin"))
+
+#p$conditional+theme_sjplot()+labs(title="Count model")
+
+p$zero_inflated+theme_sjplot()+labs(title="Zero-inflated model",
+                            y=" Estimated coefficents in Odds Ratio scale with 95%CI ")
+
+
+
+count<-p[["conditional"]][["data"]]
+
+g1<-count %>% 
+  mutate(param = factor(c("Control Group","AsaiapHM4","AsaiaWSP","Amphotericin"), 
+                        levels=c("Amphotericin","AsaiaWSP","AsaiapHM4","Control Group"))) %>% 
+  ggplot(aes(x = estimate, y=param, label=p.label))+
+  geom_point(aes(color=group), size=2.8)+ scale_color_manual(values=c("blue", "red"))+
+  geom_segment(aes(x = conf.low, xend = conf.high, y=param, yend=param,
+                   color=group))+theme_sjplot()+theme(legend.position = "none") +
+  vline_0(color="grey3")+labs(title="Count Model", x="Log-Mean", y="")+
+  geom_text(vjust=-1)
+
+
+
+
+zero<-p[["zero_inflated"]][["data"]]
+zero %>% 
+  mutate(param = factor(c("Control Group","AsaiapHM4","AsaiaWSP","Amphotericin"), 
+                        levels=c("Amphotericin","AsaiaWSP","AsaiapHM4","Control Group"))) %>% 
+  mutate(xx= c("yes", "no","no","no")) %>% 
+  ggplot(aes(x = estimate, y=param,label=p.label))+
+  geom_point(aes(color=xx), size=2.8)+ scale_color_manual(values=c("blue", "red"))+
+  geom_segment(aes(x = conf.low, xend = conf.high, y=param, yend=param,
+                   color=xx)) +scale_x_continuous( limits=c(-5, 5))+
+  theme_sjplot()+theme(legend.position = "none")+
+  labs(title="Zero-inflated model", x=" Estimated coefficents in Odds Ratio scale with 95%CI ", y="")+
+  geom_vline(xintercept = 1, col="grey")+
+  geom_text(vjust=-1)
+
+
+
+ 
+
+
+tab_model(mod,transform =NULL , string.ci = "95%CI")#)
+
+
+
+
+p<-plot_model(mod,grid = FALSE,vline.color = "blue", show.intercept = TRUE,
+              show.values = TRUE, transform = NULL,
+              show.p = FALSE)
+p$conditional+theme_sjplot()+labs(title="Count model")
+
+p$zero_inflated+theme_sjplot()+labs(title="Zero-inflated model",y="Estimated coefficent with 95%CI")
+
+
+dat <- ggpredict(mod, terms = "gruppo")
+
+
+
+  
+library(MASS)
+mod2 <- glm.nb(n.leish~ gruppo,data = nleish)
+
+vuong(mod, mod2)
+
+
+
+library(stargazer)
+stargazer(mod, zero.component = FALSE, ci=TRUE, type="text")
+
+
+
+library(pscl)
+#> Classes and Methods for R developed in the
+#> Political Science Computational Laboratory
+#> Department of Political Science
+#> Stanford University
+#> Simon Jackman
+#> hurdle and zeroinfl functions by Achim Zeileis
+m <- zeroinfl(art ~ fem + mar + kid5 + ment | 1, data = bioChemists, dist = "negbin")
+sjPlot::tab_model(m)
+sjPlot::plot_model(m)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+data<-nleish[,c(2,4)]
+write.table(data, file="mydata.csv")
+
+expCoef <- exp(coef((mod)))
+expCoef <- matrix(expCoef, ncol = 2)
+rownames(expCoef) <- names(mod[["coefficients"]][["count"]])
+colnames(expCoef) <- c("Count_model","Zero_inflation_model")
+expCoef
+
+
+
+
+library(countreg)
+countreg::rootogram(mod)
+
+ 
+
+
+
+
+###Bayesian Negative binomial regression####
+
+nleish<-nleish %>% 
+  mutate(gruppo=factor(gruppo, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina")))
+
+
+mod<-stan_glm(n.leish~gruppo, data=nleish, 
+              family = neg_binomial_2,adapt_delta = .99)
+
+
+
+
+draws <- as.data.frame(mod)
+names(draws)<-c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina", "dispersione")
+
+draws %>% 
+  mutate("Leishmania"= exp(Leishmania),
+         "AsaiaWSP"= exp(AsaiaWSP-Leishmania), 
+         "AsaiapHM4"= exp(AsaiapHM4-Leishmania),
+         "Anfotericina"= exp(Anfotericina-Leishmania)) %>% 
+  pivot_longer(cols = c(1:4), names_to = "Group", values_to = "postBeta") %>% 
+  mutate(Group=factor(Group, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina"))) %>% 
+  ggplot(aes(x = postBeta, y = Group)) +
+  geom_halfeyeh(color="navy",.width = c(0.95))+
+  labs(x="Bayesian Posterior Distribution of number of Leishmania in
+       Macrophages with uncertainity estimation (95% credibility intervals) of Bayesian Posterior Median)")+
+  annotate(geom = "text", label="1.44(95%CI: 1.30-1.6)",
+           x=1.44,
+           y=0.8)+
+  annotate(geom = "text", label="0.18(95%CI: 0.14-0.24)",
+           x=0.18,
+           y=1.8)+
+  annotate(geom = "text", label="0.10(95%CI: 0.08-0.0.14)",
+           x=0.10,
+           y=2.8)+
+  annotate(geom = "text", label="0.05(95%CI: 0.04-0.07)",
+           x=0.05,
+           y=3.8)
+
+
+
+
+
+
+
+
+
+
+######Citofluometria#######
+
+names(cito)[3:10]<-c("CD40p","CD40gm","CD80p","CD80gm","CD86p","CD86gm","MHCp","MHCgm")
+
+dabcito<-cito %>%
+  dabest(gruppo, CD40gm, 
+         idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
+         paired = FALSE
+  )
+plot(dabcito)
+
+dabcito2<-cito %>%
+  dabest(gruppo, CD80gm, 
+         idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
+         paired = FALSE
+  )
+plot(dabcito2)
+
+
+dabcito3<-cito %>%
+  dabest(gruppo, CD86gm, 
+         idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
+         paired = FALSE
+  )
+plot(dabcito3)
+
+
+dabcito4<-cito %>%
+  drop_na(MHCgm) %>% 
+  dabest(gruppo, MHCgm, 
+         idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
+         paired = FALSE
+  )
+plot(dabcito4)
+
+
+#######################generic cumming plot#######
+set.seed(54321)
+
+N = 40
+c1 <- rnorm(N, mean = 100, sd = 25)
+c2 <- rnorm(N, mean = 100, sd = 50)
+g1 <- rnorm(N, mean = 120, sd = 25)
+g2 <- rnorm(N, mean = 80, sd = 50)
+g3 <- rnorm(N, mean = 100, sd = 12)
+g4 <- rnorm(N, mean = 100, sd = 50)
+gender <- c(rep('Male', N/2), rep('Female', N/2))
+id <- 1: N
+
+
+wide.data <- 
+  tibble::tibble(
+    Control1 = c1, Control2 = c2,
+    Group1 = g1, Group2 = g2, Group3 = g3, Group4 = g4,
+    Gender = gender, ID = id)
+
+
+my.data   <- 
+  wide.data %>%
+  tidyr::gather(key = Group, value = Measurement, -ID, -Gender)
+
+library(dabestr)
+## Loading required package: boot
+## Loading required package: magrittr
+two.group.unpaired <- 
+  my.data %>%
+  dabest(Group, Measurement, 
+         # The idx below passes "Control" as the control group, 
+         # and "Group1" as the test group. The mean difference
+         # will be computed as mean(Group1) - mean(Control1).
+         idx = c("Control1", "Group1"), 
          paired = FALSE)
+p<-plot(two.group.unpaired, float.contrast = FALSE, group.summaries = NULL, 
+        rawplot.type ="swarmplot")
 
-plot(staf,rawplot.type = "sinaplot", float.contrast = FALSE,
-     rawplot.ylabel = "UFC/ml ",
-     effsize.ylabel = "Unpaired mean difference",
-     axes.title.fontsize = 12)
-
-
-
-
-
-staf2h<-dati%>%
-  filter(time=="2h") %>% 
-  mutate(gruppo=as.factor(`Pre-treatment group`)) %>%
- # mutate(iL6=log10(IL6)) %>% 
-  dabest(gruppo, CFU,
-         idx = list(c("Medium","Asaia pHM4","Asaia WSP","LPS" )),
-         paired = FALSE)
-
-plot(staf,rawplot.type = "sinaplot", float.contrast = FALSE,
-     rawplot.ylabel = "UFC/ml ",
-     effsize.ylabel = "Unpaired mean difference",
-     axes.title.fontsize = 12)
-
-
-
-
-
-
-# 
-# 
-# 
-# ###Bayesian Negative binomial regression####
-# 
-# nleish<-nleish %>% 
-#   mutate(gruppo=factor(gruppo, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina")))
-# 
-# 
-# mod<-stan_glm(n.leish~gruppo, data=nleish, 
-#                 family = neg_binomial_2,adapt_delta = .99)
-# 
-# 
-# 
-# 
-# draws <- as.data.frame(mod)
-# names(draws)<-c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina", "dispersione")
-# 
-# draws %>% 
-#   mutate("Leishmania"= exp(Leishmania),
-#          "AsaiaWSP"= exp(AsaiaWSP-Leishmania), 
-#          "AsaiapHM4"= exp(AsaiapHM4-Leishmania),
-#          "Anfotericina"= exp(Anfotericina-Leishmania)) %>% 
-#   pivot_longer(cols = c(1:4), names_to = "Group", values_to = "postBeta") %>% 
-#   mutate(Group=factor(Group, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina"))) %>% 
-#   ggplot(aes(x = postBeta, y = Group)) +
-#   geom_halfeyeh(color="navy",.width = c(0.95))+
-#   labs(x="Bayesian Posterior Distribution of number of Leishmania in
-#        Macrophages with uncertainity estimation (95% credibility intervals) of Bayesian Posterior Median)")+
-#   annotate(geom = "text", label="1.44(95%CI: 1.30-1.6)",
-#            x=1.44,
-#            y=0.8)+
-#   annotate(geom = "text", label="0.18(95%CI: 0.14-0.24)",
-#            x=0.18,
-#            y=1.8)+
-#   annotate(geom = "text", label="0.10(95%CI: 0.08-0.0.14)",
-#            x=0.10,
-#            y=2.8)+
-#   annotate(geom = "text", label="0.05(95%CI: 0.04-0.07)",
-#            x=0.05,
-#            y=3.8)
-# 
-#   
-# 
-# 
-# ###Zero-inflated neg binom regression#####
-# 
-# nleish<-nleish %>% 
-#   mutate(gruppo=factor(gruppo, levels=c("Leishmania","AsaiapHM4","AsaiaWSP","Anfotericina")))
-# 
-# 
-#  nleish %>% 
-#    ggplot(aes(n.leish))+geom_rug(aes(x = n.leish, y = 0), position = position_jitter(height = 0))+
-#    facet_wrap(~gruppo)+labs(x="Number of Leishmania in Macrophages", y="N.of Macrophages")+geom_histogram(bins=100)
-# 
-#  #### prop. Leishm##############
-#  
-#  x<-nleish %>% 
-#    mutate(prop=ifelse(n.leish==0,0,1)) 
-#  
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ######Citofluometria#######
-# 
-# names(cito)[3:10]<-c("CD40p","CD40gm","CD80p","CD80gm","CD86p","CD86gm","MHCp","MHCgm")
-# 
-# dabcito<-cito %>%
-#   dabest(gruppo, CD40gm, 
-#          idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
-#          paired = FALSE
-#   )
-# plot(dabcito)
-# 
-# dabcito2<-cito %>%
-#   dabest(gruppo, CD80gm, 
-#          idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
-#          paired = FALSE
-#   )
-# plot(dabcito2)
-# 
-# 
-# dabcito3<-cito %>%
-#   dabest(gruppo, CD86gm, 
-#          idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
-#          paired = FALSE
-#   )
-# plot(dabcito3)
-# 
-# 
-# dabcito4<-cito %>%
-#   drop_na(MHCgm) %>% 
-#   dabest(gruppo, MHCgm, 
-#          idx = list(c("AsaiapHM4 +L", "Asaia WSP +L",  "Controllo positivo", "Leishmania", "Medium")),
-#          paired = FALSE
-#   )
-# plot(dabcito4)
-# 
-# 
-# #######################generic cumming plot#######
-# set.seed(54321)
-# 
-# N = 40
-# c1 <- rnorm(N, mean = 100, sd = 25)
-# c2 <- rnorm(N, mean = 100, sd = 50)
-# g1 <- rnorm(N, mean = 120, sd = 25)
-# g2 <- rnorm(N, mean = 80, sd = 50)
-# g3 <- rnorm(N, mean = 100, sd = 12)
-# g4 <- rnorm(N, mean = 100, sd = 50)
-# gender <- c(rep('Male', N/2), rep('Female', N/2))
-# id <- 1: N
-# 
-# 
-# wide.data <- 
-#   tibble::tibble(
-#     Control1 = c1, Control2 = c2,
-#     Group1 = g1, Group2 = g2, Group3 = g3, Group4 = g4,
-#     Gender = gender, ID = id)
-# 
-# 
-# my.data   <- 
-#   wide.data %>%
-#   tidyr::gather(key = Group, value = Measurement, -ID, -Gender)
-# 
-# library(dabestr)
-# ## Loading required package: boot
-# ## Loading required package: magrittr
-# two.group.unpaired <- 
-#   my.data %>%
-#   dabest(Group, Measurement, 
-#          # The idx below passes "Control" as the control group, 
-#          # and "Group1" as the test group. The mean difference
-#          # will be computed as mean(Group1) - mean(Control1).
-#          idx = c("Control1", "Group1"), 
-#          paired = FALSE)
-# p<-plot(two.group.unpaired, float.contrast = FALSE, group.summaries = NULL, 
-#         rawplot.type ="swarmplot")
-# 
-#   p+annotate("text", x = 2, y = 130, label = "Some text")
+  p+annotate("text", x = 2, y = 130, label = "Some text")
