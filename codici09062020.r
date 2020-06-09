@@ -12,6 +12,7 @@ library(ggpubr)
 library(pscl)
 rm(list=ls())
 options(scipen = .999)
+
 dati <- read_excel("Dati AsaiaWSP-Leishmania_MODIFICATO.xlsx")
 #nleish<-read_excel("nparinmacro.xlsx", sheet = "Foglio3")
 #rateinf<-read_excel("nminf.xlsx")
@@ -2013,7 +2014,62 @@ s3<-dati%>%
 boot.t.test(CFU ~ gruppo, data=s3)
 
 
-######
+s1a<-dati%>%
+  filter(time=="1h") %>% 
+  mutate(gruppo= `Pre-treatment group`) %>%
+  filter(gruppo %in% c("Asaia WSP","Asaia pHM4"))  
+
+boot.t.test(CFU ~ gruppo, data=s1a)
+
+
+s2a<-dati%>%
+  filter(time=="2h") %>% 
+  mutate(gruppo= `Pre-treatment group`) %>%
+  filter(gruppo %in% c("Asaia WSP","Asaia pHM4"))  
+
+boot.t.test(CFU ~ gruppo, data=s2a)
+
+
+sa1h<-dati%>%
+  filter(time=="1h") %>% 
+  mutate(gruppo= `Pre-treatment group`) %>%
+  # mutate(iL6=log10(IL6)) %>% 
+  dabest(gruppo, CFU,
+         idx = list(c("Asaia pHM4","Asaia WSP")),
+         paired = FALSE)
+
+sa2h<-dati%>%
+  filter(time=="2h") %>% 
+  mutate(gruppo= `Pre-treatment group`) %>%
+  # mutate(iL6=log10(IL6)) %>% 
+  dabest(gruppo, CFU,
+         idx = list(c("Asaia pHM4","Asaia WSP")),
+         paired = FALSE)
+
+
+
+
+p1<-plot(sa1h,rawplot.type = "sinaplot", float.contrast = FALSE,
+     rawplot.ylabel = "UFC/ml ",
+     effsize.ylabel = "Unpaired mean difference",
+     axes.title.fontsize = 12)
+
+p2<-plot(sa2h,rawplot.type = "sinaplot", float.contrast = FALSE,
+         rawplot.ylabel = "UFC/ml ",
+         effsize.ylabel = "Unpaired mean difference",
+         axes.title.fontsize = 12)
+
+
+
+(p1|p2)+plot_annotation(tag_levels = '', 
+                        
+                        theme=theme(plot.caption=element_text(hjust=0, size=12, margin=margin(t=0), 
+                                                              family = "Comic Sans MS"))
+) &
+  theme(plot.tag = element_text(size = 13))
+
+
+  ######
 
 s5<-dati%>%
   filter(time=="2h") %>% 
@@ -2054,7 +2110,7 @@ staf1h<-dati%>%
          idx = list(c("Medium","Asaia pHM4","Asaia WSP","LPS" )),
          paired = FALSE)
 
-plot(staf,rawplot.type = "sinaplot", float.contrast = FALSE,
+plot(staf1h,rawplot.type = "sinaplot", float.contrast = FALSE,
      rawplot.ylabel = "UFC/ml ",
      effsize.ylabel = "Unpaired mean difference",
      axes.title.fontsize = 12)
@@ -2071,7 +2127,7 @@ staf2h<-dati%>%
          idx = list(c("Medium","Asaia pHM4","Asaia WSP","LPS" )),
          paired = FALSE)
 
-plot(staf,rawplot.type = "sinaplot", float.contrast = FALSE,
+plot(staf2h,rawplot.type = "sinaplot", float.contrast = FALSE,
      rawplot.ylabel = "UFC/ml ",
      effsize.ylabel = "Unpaired mean difference",
      axes.title.fontsize = 12)
